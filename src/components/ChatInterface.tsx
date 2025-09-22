@@ -27,21 +27,22 @@ export const ChatInterface = () => {
     scrollToBottom();
   }, [messages, isLoading]);
 
-  const simulateBotResponse = async (userMessage: string): Promise<string> => {
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+  const getBotResponse = async (userMessage: string): Promise<string> => {
+    const response = await fetch('http://localhost:8080/get', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+          msg: userMessage,
+      }),
+    });
+    // console.log(response);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
     
-    // Simple response logic - in a real app, this would call your chatbot API
-    const responses = [
-      "That's an interesting question! Let me think about that.",
-      "I understand what you're asking. Here's what I think...",
-      "Great question! Based on what you've told me, I'd suggest...",
-      "Thanks for sharing that with me. Here's my perspective...",
-      "I see what you mean. Let me help you with that.",
-      `You mentioned "${userMessage.slice(0, 20)}${userMessage.length > 20 ? '...' : ''}". That's a thoughtful point.`,
-    ];
-    
-    return responses[Math.floor(Math.random() * responses.length)];
+    return await response.text();
   };
 
   const handleSendMessage = async (messageText: string) => {
@@ -57,15 +58,7 @@ export const ChatInterface = () => {
     setIsLoading(true);
 
     try {
-      // In a real app, replace this with actual API call to your backend
-      // const response = await fetch('/get', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ msg: messageText }),
-      // });
-      // const botResponseText = await response.text();
-      
-      const botResponseText = await simulateBotResponse(messageText);
+      const botResponseText = await getBotResponse(messageText);
 
       const botMessage: ChatMessage = {
         id: `bot-${Date.now()}`,
