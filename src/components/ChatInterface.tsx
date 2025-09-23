@@ -28,14 +28,15 @@ export const ChatInterface = () => {
   }, [messages, isLoading]);
 
   const getBotResponse = async (userMessage: string): Promise<string> => {
-    const response = await fetch('http://localhost:8080/get', {
+    const response = await fetch('/api/get/bot-resp', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
+         "Accept": "application/json"
       },
       body: JSON.stringify({
           msg: userMessage,
-      }),
+      })
     });
     // console.log(response);
     if (!response.ok) {
@@ -83,7 +84,7 @@ export const ChatInterface = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-2xl h-[80vh] flex flex-col shadow-2xl border-border/50 overflow-hidden">
-        <ChatHeader />
+        {/* <ChatHeader /> */}
         
         <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-background/50">
           {messages.map((message) => (
