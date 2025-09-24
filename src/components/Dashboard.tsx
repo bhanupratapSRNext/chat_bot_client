@@ -27,7 +27,7 @@ export const Dashboard = () => {
   const createNewChat = () => {
     const newChat: ChatWindow = {
       id: `chat-${Date.now()}`,
-      title: `Chat #${chatWindows.length + 1}`,
+      title: `Chat${chatWindows.length + 1}`,
       isMinimized: false,
     };
     setChatWindows([...chatWindows, newChat]);
@@ -94,7 +94,7 @@ export const Dashboard = () => {
                       {!chat.isMinimized && (
                         <CardContent className="p-0 flex-1 flex">
                           <div className="h-96 w-full border-0 rounded-lg overflow-hidden">
-                            <ChatInterface key={chat.id} />
+                            <ChatInterface key={chat.id} name={chat.title} />
                           </div>
                         </CardContent>
                       )}

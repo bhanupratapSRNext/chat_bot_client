@@ -5,8 +5,10 @@ import { ChatInput } from "./ChatInput";
 import { TypingIndicator } from "./TypingIndicator";
 import { Card } from "./ui/card";
 import { useToast } from "@/hooks/use-toast";
-
-export const ChatInterface = () => {
+interface ChatInterfaceProps {
+  name: string;
+}
+export const ChatInterface = ({name}:ChatInterfaceProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
@@ -18,7 +20,8 @@ export const ChatInterface = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-
+  const sesionId = name;
+  
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -35,7 +38,9 @@ export const ChatInterface = () => {
          "Accept": "application/json"
       },
       body: JSON.stringify({
+        'user_id':localStorage.getItem('user_id'),
           msg: userMessage,
+          "sesionId": sesionId
       })
     });
     // console.log(response);
