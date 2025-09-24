@@ -45,6 +45,9 @@ const Login = () => {
         if (data.token) {
           localStorage.setItem('token', data.token);
         }
+        if (data.user_id) {
+          localStorage.setItem('user_id', data.user_id);
+        }
         navigate('/chat-bot');
       } else {
         toast({
