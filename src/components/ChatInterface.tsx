@@ -87,22 +87,18 @@ export const ChatInterface = ({name}:ChatInterfaceProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl h-[80vh] flex flex-col shadow-2xl border-border/50 overflow-hidden">
-        {/* <ChatHeader /> */}
+    <div className="h-full bg-background flex flex-col">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-background/50">
+        {messages.map((message) => (
+          <ChatMessageComponent key={message.id} message={message} />
+        ))}
         
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-background/50">
-          {messages.map((message) => (
-            <ChatMessageComponent key={message.id} message={message} />
-          ))}
-          
-          {isLoading && <TypingIndicator />}
-          
-          <div ref={messagesEndRef} />
-        </div>
+        {isLoading && <TypingIndicator />}
         
-        <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
-      </Card>
+        <div ref={messagesEndRef} />
+      </div>
+      
+      <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
     </div>
   );
 };
