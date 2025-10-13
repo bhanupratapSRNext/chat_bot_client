@@ -30,26 +30,57 @@ export const ChatInterface = ({name}:ChatInterfaceProps) => {
     scrollToBottom();
   }, [messages, isLoading]);
 
-  const getBotResponse = async (userMessage: string): Promise<string> => {
-    const response = await fetch('/api/get/bot-resp', {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-         "Accept": "application/json"
-      },
-      body: JSON.stringify({
-        'user_id':localStorage.getItem('user_id'),
-          msg: userMessage,
-          "sesionId": sesionId
-      })
-    });
-    // console.log(response);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+  // const getBotResponse = async (userMessage: string): Promise<string> => {
+  //   const response = await fetch('/api/runs', {
+  //     method: 'POST',
+  //     headers: { 
+  //       'Content-Type': 'application/json',
+  //        "Accept": "application/json"
+  //     },
+  //     body: JSON.stringify({
+  //       'user_id':localStorage.getItem('user_id'),
+  //         msg: userMessage,
+  //         "session_id": sesionId
+  //     })
+  //   });
+  //   // console.log(response);
+  //   if (!response.ok) {
+  //     throw new Error(`HTTP error! status: ${response.status}`);
+  //   }
     
-    return await response.text();
-  };
+  //   return await response.text();
+  // };
+  
+  const getBotResponse = async (userMessage: string): Promise<string> => {
+  const response = await fetch('/api/runs', {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify({
+      agent_name: "router",          
+      mode: "sync",                  
+      session_id: sesionId,
+      input: [{
+        role: "user",                 
+        parts: [{
+          content_type: "text/plain", 
+          content: userMessage        
+        }]
+      }]
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  const data = await response.json();
+  // extract text from ACP message
+  return data.output?.[0]?.parts?.[0]?.content ?? "(no answer)";
+};
+
 
   const handleSendMessage = async (messageText: string) => {
     // Add user message
