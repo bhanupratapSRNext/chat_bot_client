@@ -30,25 +30,41 @@ export const ChatInterface = ({name}:ChatInterfaceProps) => {
     scrollToBottom();
   }, [messages, isLoading]);
 
-  const getBotResponse = async (userMessage: string): Promise<string> => {
-    const response = await fetch('/api/get/bot-resp', {
+  const getBotResponse = async (userMessage: string): Promise<{ text: string; products?: any[] }> => {
+    const response = await fetch('/api/runs', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
-         "Accept": "application/json"
+        'Accept': 'application/json'
       },
       body: JSON.stringify({
-        'user_id':localStorage.getItem('user_id'),
-          msg: userMessage,
-          "sesionId": sesionId
+        agent_name: "router",          
+        mode: "sync",                  
+        session_id: sesionId,
+        input: [{
+          role: "user",                 
+          parts: [{
+            content_type: "text/plain", 
+            content: userMessage        
+          }]
+        }]
       })
     });
-    // console.log(response);
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    const data = await response.json();
+    const content = data.output?.[0]?.parts?.[0]?.content;
     
-    return await response.text();
+    // Check if content is an array of products
+    if (Array.isArray(content) && content.length > 0 && content[0].title) {
+      return { text: "Here are the products I found:", products: content };
+    }
+    
+    // Otherwise return as text
+    return { text: content ?? "(no answer)" };
   };
 
   const handleSendMessage = async (messageText: string) => {
@@ -64,13 +80,14 @@ export const ChatInterface = ({name}:ChatInterfaceProps) => {
     setIsLoading(true);
 
     try {
-      const botResponseText = await getBotResponse(messageText);
+      const botResponse = await getBotResponse(messageText);
 
       const botMessage: ChatMessage = {
         id: `bot-${Date.now()}`,
-        text: botResponseText,
+        text: botResponse.text,
         isUser: false,
         timestamp: new Date().toISOString(),
+        products: botResponse.products,
       };
 
       setMessages(prev => [...prev, botMessage]);
