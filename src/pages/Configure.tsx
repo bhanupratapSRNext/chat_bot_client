@@ -28,15 +28,19 @@ export default function Configure() {
 
     setIsLoading(true);
     try {
-      const response = await fetch('/api/create-index', {
+      const response = await fetch('/api/pinecone/create-index', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
+          index_name: indexName,
+          dimension: 384,
+          metric: "cosine",
+          cloud: "aws",
+          region: "us-east-1",
           user_id: localStorage.getItem('user_id'),
-          index_name: indexName
         })
       });
 
@@ -77,7 +81,7 @@ export default function Configure() {
       formData.append('user_id', localStorage.getItem('user_id') || '');
       formData.append('index_name', indexName);
 
-      const response = await fetch('/api/upload-pdf', {
+      const response = await fetch('/api/pinecone/create-embeddings', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
