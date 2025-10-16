@@ -145,26 +145,36 @@ export default function Configure() {
     
     setIsLoading(true);
     try {
+      const payload = dbType === "sql" 
+        ? {
+            connection_name: indexName,
+            connection_type: "sql",
+            sql_credentials: {
+              db_type: "postgresql",
+              host: dbConfig.host,
+              port: parseInt(dbConfig.port),
+              username: dbConfig.username,
+              password: dbConfig.password,
+              database: dbConfig.database
+            },
+            description: `Database connection for ${indexName}`
+          }
+        : {
+            connection_name: indexName,
+            connection_type: "nosql",
+            nosql_credentials: {
+              connection_url: dbConfig.url
+            },
+            description: `NoSQL connection for ${indexName}`
+          };
+
       const response = await fetch('/api/connections/save', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({
-          user_id: localStorage.getItem('user_id'),
-          index_name: indexName,
-          db_type: dbType,
-          db_config: dbType === "sql" 
-            ? {
-                host: dbConfig.host,
-                port: dbConfig.port,
-                username: dbConfig.username,
-                password: dbConfig.password,
-                database: dbConfig.database
-              }
-            : { url: dbConfig.url }
-        })
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
