@@ -23,6 +23,7 @@ export default function Configure() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [finalResult, setFinalResult] = useState<any>(null);
+  const [completedSteps, setCompletedSteps] = useState<Record<number, boolean>>({});
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -62,6 +63,7 @@ export default function Configure() {
         title: "Success",
         description: "Pinecone index created successfully",
       });
+      setCompletedSteps({ ...completedSteps, 1: true });
       setCurrentStep(2);
     } catch (error) {
       toast({
@@ -107,6 +109,7 @@ export default function Configure() {
         title: "Success",
         description: "PDF uploaded successfully",
       });
+      setCompletedSteps({ ...completedSteps, 2: true });
       setCurrentStep(3);
     } catch (error) {
       toast({
@@ -119,7 +122,7 @@ export default function Configure() {
     }
   };
 
-  const handleDatabaseConnection = () => {
+  const handleDatabaseConnection = async () => {
     if (dbType === "sql") {
       if (!dbConfig.host || !dbConfig.port || !dbConfig.username || !dbConfig.password || !dbConfig.database) {
         toast({
@@ -140,11 +143,49 @@ export default function Configure() {
       }
     }
     
-    toast({
-      title: "Success",
-      description: "Database connection configured",
-    });
-    setCurrentStep(4);
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/connections/save', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          user_id: localStorage.getItem('user_id'),
+          index_name: indexName,
+          db_type: dbType,
+          db_config: dbType === "sql" 
+            ? {
+                host: dbConfig.host,
+                port: dbConfig.port,
+                username: dbConfig.username,
+                password: dbConfig.password,
+                database: dbConfig.database
+              }
+            : { url: dbConfig.url }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save database connection');
+      }
+
+      toast({
+        title: "Success",
+        description: "Database connection configured and saved",
+      });
+      setCompletedSteps({ ...completedSteps, 3: true });
+      setCurrentStep(4);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save database connection. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleGetResults = async () => {
@@ -244,14 +285,23 @@ export default function Configure() {
                     onChange={(e) => setIndexName(e.target.value)}
                   />
                 </div>
-                <Button 
-                  onClick={handleCreateIndex} 
-                  disabled={isLoading}
-                  className="w-full"
-                >
-                  {isLoading ? "Creating..." : "Next"}
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline"
+                    onClick={() => navigate('/chat-bot')}
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back
+                  </Button>
+                  <Button 
+                    onClick={handleCreateIndex} 
+                    disabled={isLoading}
+                    className="flex-1"
+                  >
+                    {isLoading ? "Creating..." : "Next"}
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </div>
               </div>
             )}
 
@@ -279,11 +329,12 @@ export default function Configure() {
                     variant="outline"
                     onClick={() => setCurrentStep(1)}
                   >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
                     Back
                   </Button>
                   <Button 
                     onClick={handleFileUpload} 
-                    disabled={isLoading || !uploadedFile}
+                    disabled={isLoading || !uploadedFile || !completedSteps[1]}
                     className="flex-1"
                   >
                     {isLoading ? "Uploading..." : "Next"}
@@ -378,13 +429,15 @@ export default function Configure() {
                     variant="outline"
                     onClick={() => setCurrentStep(2)}
                   >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
                     Back
                   </Button>
                   <Button 
                     onClick={handleDatabaseConnection}
+                    disabled={isLoading || !completedSteps[2]}
                     className="flex-1"
                   >
-                    Next
+                    {isLoading ? "Saving..." : "Next"}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </div>
@@ -408,11 +461,12 @@ export default function Configure() {
                         variant="outline"
                         onClick={() => setCurrentStep(3)}
                       >
+                        <ArrowLeft className="w-4 h-4 mr-2" />
                         Back
                       </Button>
                       <Button 
                         onClick={handleGetResults} 
-                        disabled={isLoading}
+                        disabled={isLoading || !completedSteps[3]}
                         className="flex-1"
                       >
                         {isLoading ? "Processing..." : "Get Results"}
