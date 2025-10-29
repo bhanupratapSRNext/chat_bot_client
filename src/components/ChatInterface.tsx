@@ -20,7 +20,7 @@ export const ChatInterface = ({name}:ChatInterfaceProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const sesionId = name;
+  const sessionId = name;
   
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -40,7 +40,7 @@ export const ChatInterface = ({name}:ChatInterfaceProps) => {
       body: JSON.stringify({
         agent_name: "router",          
         mode: "sync",                  
-        session_id: sesionId,
+        session_id: sessionId,
         input: [{
           role: "user",                 
           parts: [{
@@ -57,14 +57,31 @@ export const ChatInterface = ({name}:ChatInterfaceProps) => {
 
     const data = await response.json();
     const content = data.output?.[0]?.parts?.[0]?.content;
+    console.log("Extracted content:", content);
     
-    // Check if content is an array of products
-    if (Array.isArray(content) && content.length > 0 && content[0].title) {
-      return { text: "Here are the products I found:", products: content };
+    // Try to parse content as JSON first (for properly formatted responses)
+    try {
+      const parsedContent = JSON.parse(content);
+      
+      // Check if it's a product JSON structure
+      if (parsedContent.products && Array.isArray(parsedContent.products)) {
+        return { 
+          text: parsedContent.summary || "Here are the products I found:", 
+          products: parsedContent.products 
+        };
+      }
+    } catch (e) {
+      // If JSON parsing fails, check if content is already an array (cached responses)
+      if (Array.isArray(content) && content.length > 0 && content[0].title) {
+        return { text: "Here are the products I found:", products: content };
+      }
+      
+      // If not JSON and not array, treat as regular text
+      console.log("Content is not JSON, treating as text");
     }
     
-    // Otherwise return as text
-    return { text: content ?? "(no answer)" };
+    // Return as regular text response
+    return { text: content };
   };
 
   const handleSendMessage = async (messageText: string) => {
@@ -81,7 +98,8 @@ export const ChatInterface = ({name}:ChatInterfaceProps) => {
 
     try {
       const botResponse = await getBotResponse(messageText);
-
+      // console.log("Bot response:", botResponse );
+      
       const botMessage: ChatMessage = {
         id: `bot-${Date.now()}`,
         text: botResponse.text,

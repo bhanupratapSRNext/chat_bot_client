@@ -4,12 +4,13 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 
 interface Product {
-  title: string;
+  product_name: string;
   brand: string;
-  final_price: string;
+  price: string;
   currency: string;
   asin: string;
   url: string;
+  category: string;
 }
 
 interface ProductCardProps {
@@ -17,7 +18,8 @@ interface ProductCardProps {
 }
 
 export const ProductCard = ({ product }: ProductCardProps) => {
-  const price = parseFloat(product.final_price.replace(/[^0-9.]/g, ''));
+  console.log("Rendering product:", product);
+  
   
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
@@ -26,7 +28,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
           <div className="flex-1 min-w-0">
             <Badge variant="secondary" className="mb-2">{product.brand}</Badge>
             <h3 className="font-semibold text-sm line-clamp-2 leading-tight">
-              {product.title}
+              {product.product_name}
             </h3>
           </div>
         </div>
@@ -34,7 +36,12 @@ export const ProductCard = ({ product }: ProductCardProps) => {
         <div className="flex items-end justify-between pt-2 border-t">
           <div>
             <p className="text-2xl font-bold text-primary">
-              {product.currency === 'USD' ? '$' : product.currency}{price.toFixed(2)}
+             {product.price}
+            </p>
+          </div>
+        <div>
+            <p className="text-2xl font-bold text-primary">
+             {product.category}
             </p>
           </div>
           
