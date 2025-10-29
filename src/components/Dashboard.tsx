@@ -3,11 +3,9 @@ import { useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { ChatInterface } from "./ChatInterface";
-import { MessageSquare, X, Plus } from "lucide-react";
+import { MessageSquare, X, Plus, Settings } from "lucide-react";
 import { ChatHeader } from "./ChatHeader";
 import { useNavigate } from "react-router-dom";
-import { logout } from "@/lib/auth";
-import { LogOut } from "lucide-react";
 
 interface ChatWindow {
   id: string;
@@ -17,12 +15,8 @@ interface ChatWindow {
 
 export const Dashboard = () => {
   const [chatWindows, setChatWindows] = useState<ChatWindow[]>([]);
+  const [activeChat, setActiveChat] = useState<string | null>(null);
   const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
 
   const createNewChat = () => {
     const newChat: ChatWindow = {
@@ -31,10 +25,18 @@ export const Dashboard = () => {
       isMinimized: false,
     };
     setChatWindows([...chatWindows, newChat]);
+    setActiveChat(newChat.id);
+  };
+
+  const openChat = (chatId: string) => {
+    setActiveChat(chatId);
   };
 
   const closeChat = (chatId: string) => {
     setChatWindows(chatWindows.filter(chat => chat.id !== chatId));
+    if (activeChat === chatId) {
+      setActiveChat(null);
+    }
   };
 
   const toggleMinimize = (chatId: string) => {
@@ -43,19 +45,65 @@ export const Dashboard = () => {
     ));
   };
 
+  const activeChatWindow = chatWindows.find(chat => chat.id === activeChat);
+
+  if (activeChat && activeChatWindow) {
+    return (
+      <div className="h-screen flex flex-col bg-background">
+        <div className="border-b border-border p-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setActiveChat(null)}
+            >
+              ← Back to Dashboard
+            </Button>
+            <h2 className="text-lg font-semibold">{activeChatWindow.title}</h2>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => closeChat(activeChat)}
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+        <div className="flex-1 overflow-hidden">
+          <ChatInterface key={activeChat} name={activeChatWindow.title} />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="min-h-screen bg-background">
       <ChatHeader />
       
-      <div className="max-w-6xl mx-auto mt-8">
+      <div className="max-w-6xl mx-auto p-8">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold">Welcome to AI Chat Dashboard</h1>
+            <p className="text-muted-foreground mt-2">Manage your conversations and configure your chatbot</p>
+          </div>
+          <Button 
+            onClick={() => navigate('/configure')} 
+            className="flex items-center gap-2"
+            variant="outline"
+          >
+            <Settings className="w-4 h-4" />
+            Configure
+          </Button>
+        </div>
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MessageSquare className="w-6 h-6" />
-              Chat Dashboard
+              Your Chats
             </CardTitle>            
             <CardDescription>
-              Welcome to your AI assistant dashboard. Start a new conversation to get help with anything!
+              Start a new conversation or continue an existing one
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -69,35 +117,29 @@ export const Dashboard = () => {
                 <h3 className="text-lg font-semibold mb-4">Active Chats ({chatWindows.length})</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {chatWindows.map((chat) => (
-                    <Card key={chat.id} className="relative flex flex-col">
-                      <CardHeader className="pb-2 flex-shrink-0">
+                    <Card 
+                      key={chat.id} 
+                      className="cursor-pointer hover:shadow-lg transition-shadow"
+                      onClick={() => openChat(chat.id)}
+                    >
+                      <CardHeader>
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-sm">{chat.title}</CardTitle>
-                          <div className="flex gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => toggleMinimize(chat.id)}
-                            >
-                              {chat.isMinimized ? "+" : "-"}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => closeChat(chat.id)}
-                            >
-                              <X className="w-4 h-4" />
-                            </Button>
-                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              closeChat(chat.id);
+                            }}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
                         </div>
                       </CardHeader>
-                      {!chat.isMinimized && (
-                        <CardContent className="p-0 flex-1 flex">
-                          <div className="h-96 w-full border-0 rounded-lg overflow-hidden">
-                            <ChatInterface key={chat.id} name={chat.title} />
-                          </div>
-                        </CardContent>
-                      )}
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground">Click to open</p>
+                      </CardContent>
                     </Card>
                   ))}
                 </div>

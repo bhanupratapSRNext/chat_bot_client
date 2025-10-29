@@ -1,10 +1,21 @@
 import { cn } from "@/lib/utils";
+import { ProductCard } from "./ProductCard";
+
+export interface Product {
+  title: string;
+  brand: string;
+  final_price: string;
+  currency: string;
+  asin: string;
+  url: string;
+}
 
 export interface ChatMessage {
   id: string;
   text: string;
   isUser: boolean;
   timestamp: string;
+  products?: Product[];
 }
 
 interface ChatMessageProps {
@@ -37,14 +48,23 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
       )}
       
       <div className={cn(
-        "max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-message relative transition-all duration-300 hover:shadow-lg",
+        "px-4 py-3 rounded-2xl shadow-message relative transition-all duration-300 hover:shadow-lg",
         message.isUser 
-          ? "bg-chat-user-bubble text-white ml-auto rounded-br-md" 
-          : "bg-chat-bot-bubble text-foreground rounded-bl-md"
+          ? "max-w-xs lg:max-w-md bg-chat-user-bubble text-white ml-auto rounded-br-md" 
+          : "max-w-4xl bg-chat-bot-bubble text-foreground rounded-bl-md"
       )}>
-        <p className="text-sm leading-relaxed">{message.text}</p>
+        {message.text && <p className="text-sm leading-relaxed mb-2">{message.text}</p>}
+        
+        {message.products && message.products.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
+            {message.products.map((product, idx) => (
+              <ProductCard key={`${product.asin}-${idx}`} product={product} />
+            ))}
+          </div>
+        )}
+        
         <span className={cn(
-          "text-xs mt-1 block",
+          "text-xs mt-2 block",
           message.isUser ? "text-white/70" : "text-muted-foreground"
         )}>
           {formatTime(message.timestamp)}

@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Configure from "./pages/Configure";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,8 @@ const App = () => (
           
           <Route path="/chat-bot" element={ 
             <ProtectedRoute> <Index /></ProtectedRoute>} />
+          <Route path="/configure" element={
+            <ProtectedRoute> <Configure /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
