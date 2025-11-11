@@ -2,12 +2,13 @@ import { cn } from "@/lib/utils";
 import { ProductCard } from "./ProductCard";
 
 export interface Product {
-  title: string;
+  product_name: string;
   brand: string;
-  final_price: string;
+  price: string;
   currency: string;
   asin: string;
   url: string;
+  category: string;
 }
 
 export interface ChatMessage {
