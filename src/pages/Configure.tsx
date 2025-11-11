@@ -12,15 +12,7 @@ export default function Configure() {
   const [currentStep, setCurrentStep] = useState(1);
   const [indexName, setIndexName] = useState("");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [dbType, setDbType] = useState<"sql" | "nosql">("sql");
-  const [dbConfig, setDbConfig] = useState({
-    host: "",
-    port: "",
-    username: "",
-    password: "",
-    database: "",
-    url: ""
-  });
+  const [rootUrl, setRootUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [finalResult, setFinalResult] = useState<any>(null);
   const [completedSteps, setCompletedSteps] = useState<Record<number, boolean>>({});
@@ -39,7 +31,7 @@ export default function Configure() {
 
     setIsLoading(true);
     try {
-      const response = await fetch('/api/pinecone/create-index', {
+      const response = await fetch('/api/configure/create-index', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -93,7 +85,7 @@ export default function Configure() {
       formData.append('user_id', localStorage.getItem('user_id') || '');
       formData.append('index_name', indexName);
 
-      const response = await fetch('/api/pinecone/create-embeddings', {
+      const response = await fetch('/api/configure/create-embeddings', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -122,75 +114,45 @@ export default function Configure() {
     }
   };
 
-  const handleDatabaseConnection = async () => {
-    if (dbType === "sql") {
-      if (!dbConfig.host || !dbConfig.port || !dbConfig.username || !dbConfig.password || !dbConfig.database) {
-        toast({
-          title: "Error",
-          description: "Please fill in all SQL database credentials",
-          variant: "destructive",
-        });
-        return;
-      }
-    } else {
-      if (!dbConfig.url) {
-        toast({
-          title: "Error",
-          description: "Please provide NoSQL database URL",
-          variant: "destructive",
-        });
-        return;
-      }
+  const handleRootUrlSubmit = async () => {
+    if (!rootUrl.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a root URL",
+        variant: "destructive",
+      });
+      return;
     }
     
     setIsLoading(true);
     try {
-      const payload = dbType === "sql" 
-        ? {
-            connection_name: indexName,
-            connection_type: "sql",
-            sql_credentials: {
-              db_type: "postgresql",
-              host: dbConfig.host,
-              port: parseInt(dbConfig.port),
-              username: dbConfig.username,
-              password: dbConfig.password,
-              database: dbConfig.database
-            },
-            description: `Database connection for ${indexName}`
-          }
-        : {
-            connection_name: indexName,
-            connection_type: "nosql",
-            nosql_credentials: {
-              connection_url: dbConfig.url
-            },
-            description: `NoSQL connection for ${indexName}`
-          };
-
-      const response = await fetch('/api/connections/save', {
+      const response = await fetch('/api/configure/save', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          connection_name: indexName,
+          root_url: rootUrl,
+          user_id: localStorage.getItem('user_id')
+        })
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save database connection');
+        throw new Error('Failed to process root URL');
       }
 
       toast({
-        title: "Success",
-        description: "Database connection configured and saved",
+        title: "Processing Configuration",
+        description: "We are working on your configuration. Please wait...",
       });
       setCompletedSteps({ ...completedSteps, 3: true });
       setCurrentStep(4);
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to save database connection. Please try again.",
+        description: "Failed to process root URL. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -198,51 +160,8 @@ export default function Configure() {
     }
   };
 
-  const handleGetResults = async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/get-results', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          user_id: localStorage.getItem('user_id'),
-          index_name: indexName,
-          db_type: dbType,
-          db_config: dbType === "sql" 
-            ? {
-                host: dbConfig.host,
-                port: dbConfig.port,
-                username: dbConfig.username,
-                password: dbConfig.password,
-                database: dbConfig.database
-              }
-            : { url: dbConfig.url }
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get results');
-      }
-
-      const data = await response.json();
-      setFinalResult(data);
-      
-      toast({
-        title: "Success",
-        description: "Configuration completed successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to get results. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handleGetResults = () => {
+    navigate('/chat-bot');
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -277,7 +196,7 @@ export default function Configure() {
               Step {currentStep} of 4: {
                 currentStep === 1 ? "Create Pinecone Index" :
                 currentStep === 2 ? "Upload PDF Document" :
-                currentStep === 3 ? "Database Connection" :
+                currentStep === 3 ? "Root URL Configuration" :
                 "View Results"
               }
             </CardDescription>
@@ -354,84 +273,20 @@ export default function Configure() {
               </div>
             )}
 
-            {/* Step 3: Database Connection */}
+            {/* Step 3: Root URL Configuration */}
             {currentStep === 3 && (
               <div className="space-y-4">
-                <div className="space-y-4">
-                  <div className="space-y-3">
-                    <Label>Database Type</Label>
-                    <RadioGroup value={dbType} onValueChange={(value) => setDbType(value as "sql" | "nosql")}>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="sql" id="sql" />
-                        <Label htmlFor="sql" className="font-normal cursor-pointer">SQL Database</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="nosql" id="nosql" />
-                        <Label htmlFor="nosql" className="font-normal cursor-pointer">NoSQL Database</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-
-                  {dbType === "sql" ? (
-                    <div className="space-y-3">
-                      <div className="space-y-2">
-                        <Label htmlFor="host">Host</Label>
-                        <Input
-                          id="host"
-                          placeholder="localhost or IP address"
-                          value={dbConfig.host}
-                          onChange={(e) => setDbConfig({ ...dbConfig, host: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="port">Port</Label>
-                        <Input
-                          id="port"
-                          placeholder="5432"
-                          value={dbConfig.port}
-                          onChange={(e) => setDbConfig({ ...dbConfig, port: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="username">Username</Label>
-                        <Input
-                          id="username"
-                          placeholder="Database username"
-                          value={dbConfig.username}
-                          onChange={(e) => setDbConfig({ ...dbConfig, username: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="password">Password</Label>
-                        <Input
-                          id="password"
-                          type="password"
-                          placeholder="Database password"
-                          value={dbConfig.password}
-                          onChange={(e) => setDbConfig({ ...dbConfig, password: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="database">Database Name</Label>
-                        <Input
-                          id="database"
-                          placeholder="Database name"
-                          value={dbConfig.database}
-                          onChange={(e) => setDbConfig({ ...dbConfig, database: e.target.value })}
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <Label htmlFor="url">Database URL</Label>
-                      <Input
-                        id="url"
-                        placeholder="mongodb://... or https://..."
-                        value={dbConfig.url}
-                        onChange={(e) => setDbConfig({ ...dbConfig, url: e.target.value })}
-                      />
-                    </div>
-                  )}
+                <div className="space-y-2">
+                  <Label htmlFor="rootUrl">Root URL</Label>
+                  <Input
+                    id="rootUrl"
+                    placeholder="https://example.com"
+                    value={rootUrl}
+                    onChange={(e) => setRootUrl(e.target.value)}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Enter the root URL for configuration processing
+                  </p>
                 </div>
 
                 <div className="flex gap-2">
@@ -443,11 +298,11 @@ export default function Configure() {
                     Back
                   </Button>
                   <Button 
-                    onClick={handleDatabaseConnection}
+                    onClick={handleRootUrlSubmit}
                     disabled={isLoading || !completedSteps[2]}
                     className="flex-1"
                   >
-                    {isLoading ? "Saving..." : "Next"}
+                    {isLoading ? "Processing..." : "Next"}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </div>
@@ -463,7 +318,7 @@ export default function Configure() {
                       <CheckCircle className="w-16 h-16 mx-auto text-green-500 mb-4" />
                       <h3 className="text-lg font-semibold mb-2">Ready to Process</h3>
                       <p className="text-muted-foreground">
-                        Click the button below to process your data and get results
+                        We are processing your configuration.
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -479,7 +334,7 @@ export default function Configure() {
                         disabled={isLoading || !completedSteps[3]}
                         className="flex-1"
                       >
-                        {isLoading ? "Processing..." : "Get Results"}
+                        {isLoading ? "Processing..." : "Go to Home page"}
                       </Button>
                     </div>
                   </>
