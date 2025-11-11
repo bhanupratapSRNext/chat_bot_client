@@ -7,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, ArrowRight, Upload, CheckCircle, Database } from "lucide-react";
+import { log } from "console";
 
 export default function Configure() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -46,21 +47,27 @@ export default function Configure() {
           user_id: localStorage.getItem('user_id'),
         })
       });
+      const data = await response.json(); 
 
+       if (data.success === false) {
+        throw new Error(data.message);
+    }
+       console.log("Response data:", data);
+      
       if (!response.ok) {
         throw new Error('Failed to create index');
       }
 
       toast({
         title: "Success",
-        description: "Pinecone index created successfully",
+        description: data.message,
       });
       setCompletedSteps({ ...completedSteps, 1: true });
       setCurrentStep(2);
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to create index. Please try again.",
+        description: error.message,
         variant: "destructive",
       });
     } finally {
