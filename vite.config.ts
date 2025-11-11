@@ -29,7 +29,7 @@ export default defineConfig(({ mode }) => ({
   // port: 3000,
   proxy: {
     "/api": {
-      target: "http://localhost:8080",
+      target: "http://localhost:8000",
       changeOrigin: true,
       secure: false,
       rewrite: p => p.replace(/^\/api/, ""), // /api/get/bot-resp -> /get/bot-resp

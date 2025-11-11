@@ -16,7 +16,7 @@ export const isTokenValid = async (): Promise<boolean> => {
   if (!token) return false;
 
   try {
-    const response = await fetch('http://localhost:8080/v1/user/verify', {
+    const response = await fetch('http://localhost:8000/user/verify', {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,

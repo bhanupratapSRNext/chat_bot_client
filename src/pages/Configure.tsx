@@ -31,7 +31,7 @@ export default function Configure() {
 
     setIsLoading(true);
     try {
-      const response = await fetch('/api/pinecone/create-index', {
+      const response = await fetch('/api/configure/create-index', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -85,7 +85,7 @@ export default function Configure() {
       formData.append('user_id', localStorage.getItem('user_id') || '');
       formData.append('index_name', indexName);
 
-      const response = await fetch('/api/pinecone/create-embeddings', {
+      const response = await fetch('/api/configure/create-embeddings', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -126,7 +126,7 @@ export default function Configure() {
     
     setIsLoading(true);
     try {
-      const response = await fetch('/api/connections/save', {
+      const response = await fetch('/api/configure/save', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -160,42 +160,8 @@ export default function Configure() {
     }
   };
 
-  const handleGetResults = async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/get-results', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          user_id: localStorage.getItem('user_id'),
-          index_name: indexName,
-          root_url: rootUrl
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get results');
-      }
-
-      const data = await response.json();
-      setFinalResult(data);
-      
-      toast({
-        title: "Success",
-        description: "Configuration completed successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to get results. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handleGetResults = () => {
+    navigate('/chat-bot');
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -352,7 +318,7 @@ export default function Configure() {
                       <CheckCircle className="w-16 h-16 mx-auto text-green-500 mb-4" />
                       <h3 className="text-lg font-semibold mb-2">Ready to Process</h3>
                       <p className="text-muted-foreground">
-                        Click the button below to process your data and get results
+                        We are processing your configuration.
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -368,7 +334,7 @@ export default function Configure() {
                         disabled={isLoading || !completedSteps[3]}
                         className="flex-1"
                       >
-                        {isLoading ? "Processing..." : "Get Results"}
+                        {isLoading ? "Processing..." : "Go to Home page"}
                       </Button>
                     </div>
                   </>
