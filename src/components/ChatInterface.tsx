@@ -57,7 +57,7 @@ export const ChatInterface = ({name}:ChatInterfaceProps) => {
 
     const data = await response.json();
     const content = data.output?.[0]?.parts?.[0]?.content;
-    console.log("Extracted content:", content);
+    // console.log("Extracted content:", content);
     
     // Try to parse content as JSON first (for properly formatted responses)
     try {
