@@ -35,7 +35,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             className="w-full h-40 object-cover border-b"
             onError={(e) => {
               (e.currentTarget as HTMLImageElement).src =
-                "https://via.placeholder.com/300x200?text=No+Image";
+                "https://www.google.com/imgres?q=link%20to%20no%20image&imgurl=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2F1%2F14%2FNo_Image_Available.jpg&imgrefurl=https%3A%2F%2Fcommons.wikimedia.org%2Fwiki%2FFile%3ANo_Image_Available.jpg&docid=r1K2HZMoU-bYgM&tbnid=adRgxP47ko1kpM&vet=12ahUKEwi9pYyy1_uQAxXzzjgGHTooD38QM3oECA8QAA..i&w=547&h=547&hcb=2&ved=2ahUKEwi9pYyy1_uQAxXzzjgGHTooD38QM3oECA8QAA";
             }}
           />
             {/* <Badge variant="secondary" className="mb-2">{product.brand}</Badge> */}
@@ -48,7 +48,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
         <div className="flex items-end justify-between pt-2 border-t">
           <div>
             <p className="text-2xl font-bold text-primary">
-             {product.price}
+              ₹ {product.price}
             </p>
           </div>
         {/* <div>

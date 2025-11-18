@@ -41,6 +41,7 @@ export const ChatInterface = ({name}:ChatInterfaceProps) => {
         agent_name: "router",          
         mode: "sync",                  
         session_id: sessionId,
+        tenantID:'thewholetruthfoods.com',
         input: [{
           role: "user",                 
           parts: [{
@@ -49,8 +50,9 @@ export const ChatInterface = ({name}:ChatInterfaceProps) => {
           }]
         }]
       })
-    });
 
+    });
+    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
