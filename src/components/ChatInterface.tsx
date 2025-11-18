@@ -30,7 +30,7 @@ export const ChatInterface = ({name}:ChatInterfaceProps) => {
     scrollToBottom();
   }, [messages, isLoading]);
 
-  const getBotResponse = async (userMessage: string): Promise<{ text: string; products?: any[] }> => {
+  const getBotResponse = async (userMessage: string): Promise<{ text: string; products?: any[]; heading?: string; listItems?: string[] }> => {
     const response = await fetch('/api/runs', {
       method: 'POST',
       headers: { 
@@ -57,7 +57,33 @@ export const ChatInterface = ({name}:ChatInterfaceProps) => {
 
     const data = await response.json();
     const content = data.output?.[0]?.parts?.[0]?.content;
-    // console.log("Extracted content:", content);
+    console.log("Extracted content:", content);
+    
+    // Check if content contains heading and list format
+    if (typeof content === 'string' && content.includes('heading:')) {
+      const lines = content.split('\n').map(line => line.trim()).filter(line => line);
+      const headingMatch = content.match(/heading:\s*"([^"]+)"/);
+      const heading = headingMatch ? headingMatch[1] : null;
+      
+      // Extract list items (lines that start with [ and end with ])
+      const listItems: string[] = [];
+      const listItemRegex = /\[\s*"([^"]+)"\s*\]/;
+      
+      lines.forEach(line => {
+        const match = line.match(listItemRegex);
+        if (match) {
+          listItems.push(match[1]);
+        }
+      });
+      
+      if (heading && listItems.length > 0) {
+        return { 
+          text: "", 
+          heading, 
+          listItems 
+        };
+      }
+    }
     
     // Try to parse content as JSON first (for properly formatted responses)
     try {
@@ -106,6 +132,8 @@ export const ChatInterface = ({name}:ChatInterfaceProps) => {
         isUser: false,
         timestamp: new Date().toISOString(),
         products: botResponse.products,
+        heading: botResponse.heading,
+        listItems: botResponse.listItems,
       };
 
       setMessages(prev => [...prev, botMessage]);

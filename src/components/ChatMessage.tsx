@@ -7,7 +7,8 @@ export interface Product {
   price: string;
   currency: string;
   asin: string;
-  url: string;
+  product_url: string;
+  source_url: string;
   category: string;
 }
 
@@ -17,6 +18,8 @@ export interface ChatMessage {
   isUser: boolean;
   timestamp: string;
   products?: Product[];
+  heading?: string;
+  listItems?: string[];
 }
 
 interface ChatMessageProps {
@@ -55,6 +58,21 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
           : "max-w-4xl bg-chat-bot-bubble text-foreground rounded-bl-md"
       )}>
         {message.text && <p className="text-sm leading-relaxed mb-2">{message.text}</p>}
+        
+        {message.heading && (
+          <h3 className="text-lg font-semibold mb-3 text-foreground">{message.heading}</h3>
+        )}
+        
+        {message.listItems && message.listItems.length > 0 && (
+          <ul className="space-y-2 mb-3">
+            {message.listItems.map((item, idx) => (
+              <li key={idx} className="flex items-start text-sm leading-relaxed">
+                <span className="text-primary mr-2 mt-1.5 flex-shrink-0">•</span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        )}
         
         {message.products && message.products.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
