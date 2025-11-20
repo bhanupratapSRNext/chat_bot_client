@@ -30,7 +30,7 @@ export const ChatInterface = ({name}:ChatInterfaceProps) => {
     scrollToBottom();
   }, [messages, isLoading]);
 
-  const getBotResponse = async (userMessage: string): Promise<{ text: string; products?: any[]; heading?: string; listItems?: string[] }> => {
+  const getBotResponse = async (userMessage: string): Promise<{ text: string; products?: any[]; categories?: any[]; heading?: string; listItems?: string[] }> => {
     const response = await fetch('/api/runs', {
       method: 'POST',
       headers: { 
@@ -60,56 +60,86 @@ export const ChatInterface = ({name}:ChatInterfaceProps) => {
     const data = await response.json();
     const content = data.output?.[0]?.parts?.[0]?.content;
     console.log("Extracted content:", content);
+    console.log("Content type:", typeof content);
     
-    // Check if content contains heading and list format
-    if (typeof content === 'string' && content.includes('heading:')) {
-      const lines = content.split('\n').map(line => line.trim()).filter(line => line);
-      const headingMatch = content.match(/heading:\s*"([^"]+)"/);
-      const heading = headingMatch ? headingMatch[1] : null;
-      
-      // Extract list items (lines that start with [ and end with ])
-      const listItems: string[] = [];
-      const listItemRegex = /\[\s*"([^"]+)"\s*\]/;
-      
-      lines.forEach(line => {
-        const match = line.match(listItemRegex);
-        if (match) {
-          listItems.push(match[1]);
-        }
-      });
-      
-      if (heading && listItems.length > 0) {
+    // If content is already an object (already parsed JSON)
+    if (typeof content === 'object' && content !== null) {
+      // Check if it's a category-based product structure (new format)
+      if (content.categories && Array.isArray(content.categories)) {
         return { 
-          text: "", 
-          heading, 
-          listItems 
+          text: content.summary || "Here are the products I found:", 
+          categories: content.categories 
         };
       }
-    }
-    
-    // Try to parse content as JSON first (for properly formatted responses)
-    try {
-      const parsedContent = JSON.parse(content);
       
-      // Check if it's a product JSON structure
-      if (parsedContent.products && Array.isArray(parsedContent.products)) {
+      // Check if it's a product JSON structure (old format)
+      if (content.products && Array.isArray(content.products)) {
         return { 
-          text: parsedContent.summary || "Here are the products I found:", 
-          products: parsedContent.products 
+          text: content.summary || "Here are the products I found:", 
+          products: content.products 
         };
       }
-    } catch (e) {
-      // If JSON parsing fails, check if content is already an array (cached responses)
+      
+      // If it's already an array of products
       if (Array.isArray(content) && content.length > 0 && content[0].title) {
         return { text: "Here are the products I found:", products: content };
       }
+    }
+    
+    // If content is a string, try to parse it
+    if (typeof content === 'string') {
+      // Check if content contains heading and list format
+      if (content.includes('heading:')) {
+        const lines = content.split('\n').map(line => line.trim()).filter(line => line);
+        const headingMatch = content.match(/heading:\s*"([^"]+)"/);
+        const heading = headingMatch ? headingMatch[1] : null;
+        
+        // Extract list items (lines that start with [ and end with ])
+        const listItems: string[] = [];
+        const listItemRegex = /\[\s*"([^"]+)"\s*\]/;
+        
+        lines.forEach(line => {
+          const match = line.match(listItemRegex);
+          if (match) {
+            listItems.push(match[1]);
+          }
+        });
+        
+        if (heading && listItems.length > 0) {
+          return { 
+            text: "", 
+            heading, 
+            listItems 
+          };
+        }
+      }
       
-      // If not JSON and not array, treat as regular text
-      console.log("Content is not JSON, treating as text");
+      // Try to parse content as JSON
+      try {
+        const parsedContent = JSON.parse(content);
+        
+        // Check if it's a category-based product structure (new format)
+        if (parsedContent.categories && Array.isArray(parsedContent.categories)) {
+          return { 
+            text: parsedContent.summary || "Here are the products I found:", 
+            categories: parsedContent.categories 
+          };
+        }
+        
+        // Check if it's a product JSON structure (old format)
+        if (parsedContent.products && Array.isArray(parsedContent.products)) {
+          return { 
+            text: parsedContent.summary || "Here are the products I found:", 
+            products: parsedContent.products 
+          };
+        }
+      } catch (e) {
+        console.log("Content is not valid JSON, treating as text");
+      }
     }
     
     // Return as regular text response
-    return { text: content };
+    return { text: typeof content === 'string' ? content : JSON.stringify(content) };
   };
 
   const handleSendMessage = async (messageText: string) => {
@@ -134,6 +164,7 @@ export const ChatInterface = ({name}:ChatInterfaceProps) => {
         isUser: false,
         timestamp: new Date().toISOString(),
         products: botResponse.products,
+        categories: botResponse.categories,
         heading: botResponse.heading,
         listItems: botResponse.listItems,
       };

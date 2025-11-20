@@ -2,14 +2,15 @@ import { cn } from "@/lib/utils";
 import { ProductCard } from "./ProductCard";
 
 export interface Product {
-  product_name: string;
-  brand: string;
-  price: string;
-  currency: string;
-  asin: string;
-  product_url: string;
+  title: string;
+  price: number;
   source_url: string;
-  category: string;
+  product_image: string;
+}
+
+export interface CategoryGroup {
+  category_name: string;
+  products: Product[];
 }
 
 export interface ChatMessage {
@@ -18,6 +19,7 @@ export interface ChatMessage {
   isUser: boolean;
   timestamp: string;
   products?: Product[];
+  categories?: CategoryGroup[];
   heading?: string;
   listItems?: string[];
 }
@@ -74,10 +76,27 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
           </ul>
         )}
         
-        {message.products && message.products.length > 0 && (
+        {message.categories && message.categories.length > 0 && (
+          <div className="space-y-6 mt-4">
+            {message.categories.map((category, catIdx) => (
+              <div key={catIdx} className="space-y-3">
+                <h4 className="text-base font-semibold text-foreground border-b pb-2">
+                  {category.category_name}
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {category.products.map((product, prodIdx) => (
+                    <ProductCard key={`${catIdx}-${prodIdx}`} product={product} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {message.products && message.products.length > 0 && !message.categories && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
             {message.products.map((product, idx) => (
-              <ProductCard key={`${product.asin}-${idx}`} product={product} />
+              <ProductCard key={idx} product={product} />
             ))}
           </div>
         )}

@@ -7,14 +7,10 @@ import { Badge } from "./ui/badge";
 import NoImage from '../../public/image.png'
 
 interface Product {
-  product_name: string;
-  brand: string;
-  price: string;
-  currency?: string;
-  asin?: string;
-  product_url?: string | null;
-  source_url?: string | null;
-  category?: string;
+  title: string;
+  price: number;
+  source_url: string;
+  product_image: string;
 }
 
 interface ProductCardProps {
@@ -23,11 +19,11 @@ interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const imgSrc =
-    product.product_url &&
-    typeof product.product_url === "string" &&
-    product.product_url.trim() !== "" &&
-    !product.product_url.toLowerCase().includes("null")
-      ? product.product_url.trim()
+    product.product_image &&
+    typeof product.product_image === "string" &&
+    product.product_image.trim() !== "" &&
+    !product.product_image.toLowerCase().includes("null")
+      ? product.product_image.trim()
       : NoImage;
 
   const openUrl = (url?: string | null) => {
@@ -43,7 +39,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <div className="flex-1 min-w-0">
             <img
               src={imgSrc}
-              alt={product.product_name ?? "product image"}
+              alt={product.title ?? "product image"}
               className="w-full h-40 object-cover border-b"
               onError={(e) => {
                 const target = e.currentTarget as HTMLImageElement;
@@ -53,12 +49,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               }}
             />
 
-            <Badge variant="secondary" className="mb-2">
-              {product.brand}
-            </Badge>
-
             <h3 className="font-semibold text-sm line-clamp-2 leading-tight mt-2">
-              {product.product_name}
+              {product.title}
             </h3>
           </div>
         </div>
@@ -71,7 +63,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <Button
             size="sm"
             variant="default"
-            onClick={() => openUrl(product.source_url ?? product.product_url)}
+            onClick={() => openUrl(product.source_url)}
             className="gap-2"
           >
             <ShoppingCart className="w-4 h-4" />
