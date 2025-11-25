@@ -2,13 +2,15 @@ import { cn } from "@/lib/utils";
 import { ProductCard } from "./ProductCard";
 
 export interface Product {
-  product_name: string;
-  brand: string;
-  price: string;
-  currency: string;
-  asin: string;
-  url: string;
-  category: string;
+  title: string;
+  price: number;
+  source_url: string;
+  product_image: string;
+}
+
+export interface CategoryGroup {
+  category_name: string;
+  products: Product[];
 }
 
 export interface ChatMessage {
@@ -17,6 +19,9 @@ export interface ChatMessage {
   isUser: boolean;
   timestamp: string;
   products?: Product[];
+  categories?: CategoryGroup[];
+  heading?: string;
+  listItems?: string[];
 }
 
 interface ChatMessageProps {
@@ -56,10 +61,42 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
       )}>
         {message.text && <p className="text-sm leading-relaxed mb-2">{message.text}</p>}
         
-        {message.products && message.products.length > 0 && (
+        {message.heading && (
+          <h3 className="text-lg font-semibold mb-3 text-foreground">{message.heading}</h3>
+        )}
+        
+        {message.listItems && message.listItems.length > 0 && (
+          <ul className="space-y-2 mb-3">
+            {message.listItems.map((item, idx) => (
+              <li key={idx} className="flex items-start text-sm leading-relaxed">
+                <span className="text-primary mr-2 mt-1.5 flex-shrink-0">•</span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        
+        {message.categories && message.categories.length > 0 && (
+          <div className="space-y-6 mt-4">
+            {message.categories.map((category, catIdx) => (
+              <div key={catIdx} className="space-y-3">
+                <h4 className="text-base font-semibold text-foreground border-b pb-2">
+                  {category.category_name}
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {category.products.map((product, prodIdx) => (
+                    <ProductCard key={`${catIdx}-${prodIdx}`} product={product} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {message.products && message.products.length > 0 && !message.categories && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
             {message.products.map((product, idx) => (
-              <ProductCard key={`${product.asin}-${idx}`} product={product} />
+              <ProductCard key={idx} product={product} />
             ))}
           </div>
         )}
