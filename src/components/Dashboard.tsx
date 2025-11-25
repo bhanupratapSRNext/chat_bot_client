@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { ChatInterface } from "./ChatInterface";
+import { MiniChatbot } from "./MiniChatbot";
 import { MessageSquare, X, Plus, Settings, ChevronDown } from "lucide-react";
 import { ChatHeader } from "./ChatHeader";
 import { useNavigate } from "react-router-dom";
@@ -226,6 +227,9 @@ export const Dashboard = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Mini Chatbot */}
+      <MiniChatbot />
     </div>
   );
 };
