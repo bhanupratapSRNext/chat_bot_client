@@ -1,12 +1,97 @@
+/**
+ * MiniChatbot - A self-contained, fully independent chatbot component
+ * 
+ * DEPENDENCIES:
+ * - react (useState, useRef, useEffect)
+ * - lucide-react (for icons: MessageCircle, Send, X, Loader2, ExternalLink, ShoppingCart)
+ * 
+ * CONFIGURATION:
+ * 1. Update the API endpoint in getBotResponse() to match your backend
+ * 2. Update the tenantID in the API call
+ * 3. Customize styles by modifying the className strings
+ * 
+ * USAGE:
+ * Simply import and add <MiniChatbot /> to your React app
+ */
+
 import { useState, useRef, useEffect } from "react";
 import { MessageCircle, Send, X, Loader2, ExternalLink, ShoppingCart } from "lucide-react";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Card } from "./ui/card";
-import { Badge } from "./ui/badge";
-import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
-import NoImage from '../../public/image.png';
+
+// Utility function for className merging
+const cn = (...classes: (string | boolean | undefined)[]) => {
+  return classes.filter(Boolean).join(' ');
+};
+
+// Simple toast notification system
+const useToast = () => {
+  const [toasts, setToasts] = useState<Array<{ id: string; title: string; description: string; variant?: string }>>([]);
+
+  const toast = ({ title, description, variant }: { title: string; description: string; variant?: string }) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setToasts(prev => [...prev, { id, title, description, variant }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 3000);
+  };
+
+  return { toast, toasts, setToasts };
+};
+
+// Fallback image as data URI
+const NoImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23f0f0f0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='14' fill='%23999'%3ENo Image%3C/text%3E%3C/svg%3E";
+
+// Inline UI Components
+const Button = ({ 
+  children, 
+  onClick, 
+  variant = "default", 
+  size = "default", 
+  disabled, 
+  type = "button",
+  className = "" 
+}: any) => {
+  const baseStyles = "inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50";
+  const variants: any = {
+    default: "bg-blue-600 text-white hover:bg-blue-700",
+    ghost: "hover:bg-gray-100",
+  };
+  const sizes: any = {
+    default: "h-10 px-4 py-2",
+    sm: "h-8 px-3 text-sm",
+    icon: "h-10 w-10",
+  };
+  
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(baseStyles, variants[variant], sizes[size], className)}
+    >
+      {children}
+    </button>
+  );
+};
+
+const Input = ({ className = "", ...props }: any) => {
+  return (
+    <input
+      className={cn(
+        "flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50",
+        className
+      )}
+      {...props}
+    />
+  );
+};
+
+const Card = ({ children, className = "" }: any) => {
+  return (
+    <div className={cn("rounded-lg border border-gray-200 bg-white shadow-sm", className)}>
+      {children}
+    </div>
+  );
+};
 
 interface Product {
   title: string;
@@ -44,7 +129,7 @@ export const MiniChatbot = () => {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
+  const { toast, toasts, setToasts } = useToast();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -429,6 +514,36 @@ export const MiniChatbot = () => {
           </div>
         </div>
       )}
+
+      {/* Toast Notifications */}
+      <div className="fixed bottom-20 right-6 z-50 space-y-2">
+        {toasts.map((t) => (
+          <div
+            key={t.id}
+            className={cn(
+              "rounded-lg border p-4 shadow-lg animate-slide-in-up bg-white",
+              t.variant === "destructive" ? "border-red-500 bg-red-50" : "border-gray-200"
+            )}
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex-1">
+                <h3 className={cn("font-semibold text-sm", t.variant === "destructive" ? "text-red-900" : "text-gray-900")}>
+                  {t.title}
+                </h3>
+                <p className={cn("text-sm mt-1", t.variant === "destructive" ? "text-red-700" : "text-gray-600")}>
+                  {t.description}
+                </p>
+              </div>
+              <button
+                onClick={() => setToasts(prev => prev.filter(toast => toast.id !== t.id))}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
     </>
   );
 };
