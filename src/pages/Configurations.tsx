@@ -8,9 +8,10 @@ import { ChatHeader } from "@/components/ChatHeader";
 import { Loader2, FileText, ArrowLeft } from "lucide-react";
 
 interface Configuration {
-  id: string;
-  name: string;
-  created_at?: string;
+  Index: string;
+  Status: string;
+  URL: string;
+  scrape_status: boolean;
   [key: string]: any;
 }
 
@@ -155,24 +156,27 @@ export default function Configurations() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {configurations.map((config) => (
               <Card 
-                key={config.id} 
+                key={config.Index} 
                 className="cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => fetchConfigurationDetail(config.id)}
+                onClick={() => fetchConfigurationDetail(config.Index)}
               >
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <FileText className="w-5 h-5" />
-                    {config.name || `Configuration ${config.id}`}
+                    Index: {config.Index}
                   </CardTitle>
-                  {config.created_at && (
-                    <CardDescription>
-                      Created: {new Date(config.created_at).toLocaleDateString()}
-                    </CardDescription>
-                  )}
+                  <CardDescription>
+                    Status: <span className={config.Status === 'pending' ? 'text-yellow-500' : 'text-green-500'}>
+                      {config.Status}
+                    </span>
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Click to view details
+                  <p className="text-sm text-muted-foreground mb-2">
+                    {config.URL}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Scrape Status: {config.scrape_status ? '✓ Complete' : '○ Pending'}
                   </p>
                 </CardContent>
               </Card>
