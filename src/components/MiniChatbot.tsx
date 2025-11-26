@@ -77,7 +77,7 @@ const Input = ({ className = "", ...props }: any) => {
   return (
     <input
       className={cn(
-        "flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50",
+        "flex h-10 w-full rounded-md border border-gray-300 bg-black px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
       {...props}
@@ -143,7 +143,7 @@ export const MiniChatbot = () => {
     const userId = localStorage.getItem("user_id");
     const sessionId = userId || "guest";
 
-    const response = await fetch('/api/runs', {
+    const response = await fetch('http://34.193.90.106/api/runs', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
