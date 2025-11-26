@@ -140,7 +140,7 @@ export default function Configure() {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
-          connection_name: indexName,
+          index_name: indexName,
           root_url: rootUrl,
           user_id: localStorage.getItem('user_id')
         })
