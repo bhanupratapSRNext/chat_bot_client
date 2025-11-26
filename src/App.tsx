@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Configure from "./pages/Configure";
+import Configurations from "./pages/Configurations";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,8 @@ const App = () => (
             <ProtectedRoute> <Index /></ProtectedRoute>} />
           <Route path="/configure" element={
             <ProtectedRoute> <Configure /></ProtectedRoute>} />
+          <Route path="/configurations" element={
+            <ProtectedRoute> <Configurations /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
