@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { MiniChatbot } from "./ui/mini_chat";
 
 interface ChatWindow {
   id: string;
@@ -226,6 +227,7 @@ export const Dashboard = () => {
             </div>
           )}
         </DialogContent>
+        <MiniChatbot />
       </Dialog>
 
       {/* Mini Chatbot */}
