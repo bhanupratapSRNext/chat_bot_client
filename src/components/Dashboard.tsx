@@ -8,9 +8,7 @@ import { MessageSquare, X, Plus, Settings, ChevronDown } from "lucide-react";
 import { ChatHeader } from "./ChatHeader";
 import { useNavigate } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { MiniChatbot } from "./ui/mini_chat";
 
 interface ChatWindow {
   id: string;
@@ -21,9 +19,6 @@ interface ChatWindow {
 export const Dashboard = () => {
   const [chatWindows, setChatWindows] = useState<ChatWindow[]>([]);
   const [activeChat, setActiveChat] = useState<string | null>(null);
-  const [showConfigDialog, setShowConfigDialog] = useState(false);
-  const [configDetails, setConfigDetails] = useState<any>(null);
-  const [isLoadingConfig, setIsLoadingConfig] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -54,47 +49,6 @@ export const Dashboard = () => {
     ));
   };
 
-  const fetchConfiguration = async () => {
-    setIsLoadingConfig(true);
-    try {
-      const userId = localStorage.getItem('user_id');
-      const token = localStorage.getItem('token');
-      
-      if (!userId) {
-        toast({
-          title: "Error",
-          description: "User ID not found",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const response = await fetch('/api/fetch-configuration/detail', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ user_id: userId })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch configuration');
-      }
-
-      const data = await response.json();
-      setConfigDetails(data);
-      setShowConfigDialog(true);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch configuration details",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoadingConfig(false);
-    }
-  };
 
   const activeChatWindow = chatWindows.find(chat => chat.id === activeChat);
 
@@ -150,9 +104,9 @@ export const Dashboard = () => {
                 <Settings className="w-4 h-4 mr-2" />
                 Configure
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={fetchConfiguration} disabled={isLoadingConfig}>
+              <DropdownMenuItem onClick={() => navigate('/configurations')}>
                 <MessageSquare className="w-4 h-4 mr-2" />
-                {isLoadingConfig ? "Loading..." : "Fetch Configuration"}
+                Fetch Configuration
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -210,25 +164,6 @@ export const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
-
-      <Dialog open={showConfigDialog} onOpenChange={setShowConfigDialog}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Configuration Details</DialogTitle>
-            <DialogDescription>
-              Your current configuration settings
-            </DialogDescription>
-          </DialogHeader>
-          {configDetails && (
-            <div className="space-y-4">
-              <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
-                {JSON.stringify(configDetails, null, 2)}
-              </pre>
-            </div>
-          )}
-        </DialogContent>
-        <MiniChatbot />
-      </Dialog>
 
       {/* Mini Chatbot */}
       <MiniChatbot />
