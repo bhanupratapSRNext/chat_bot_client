@@ -57,7 +57,7 @@ export default function Configurations() {
       }
 
       const data = await response.json();
-      setConfigurations(data.configurations || data || []);
+      setConfigurations(data.data || []);
     } catch (error) {
       toast({
         title: "Error",
@@ -166,14 +166,14 @@ export default function Configurations() {
                     Index: {config.Index}
                   </CardTitle>
                   <CardDescription>
-                    Status: <span className={config.Status === 'pending' ? 'text-yellow-500' : 'text-green-500'}>
-                      {config.Status}
+                    Status: <span className={config.Status === 'pending' ? 'text-yellow-500' : config.Status ? 'text-green-500' : 'text-muted-foreground'}>
+                      {config.Status || 'Not started'}
                     </span>
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground mb-2">
-                    {config.URL}
+                    {config.URL || 'No URL set'}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Scrape Status: {config.scrape_status ? '✓ Complete' : '○ Pending'}
