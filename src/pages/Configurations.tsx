@@ -84,7 +84,7 @@ export default function Configurations() {
         return;
       }
 
-      const response = await fetch('http://localhost:8000/api/fetch-configuration/detail', {
+      const response = await fetch('api/fetch-configuration/detail', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
