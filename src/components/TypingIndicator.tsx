@@ -1,4 +1,25 @@
+import { useState, useEffect } from "react";
+
+const loadingMessages = [
+  "Thinking...",
+  "Processing your request...",
+  "Searching for the best options...",
+  "Almost there...",
+  "Gathering information...",
+  "Just a moment...",
+];
+
 export const TypingIndicator = () => {
+  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentMessageIndex((prev) => (prev + 1) % loadingMessages.length);
+    }, 2000); // Change message every 2 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="flex justify-start mb-4 animate-slide-in-up">
       <div className="flex-shrink-0 mr-3">
@@ -14,10 +35,13 @@ export const TypingIndicator = () => {
       </div>
       
       <div className="bg-chat-bot-bubble text-foreground px-4 py-3 rounded-2xl rounded-bl-md shadow-message max-w-xs lg:max-w-md">
-        <div className="flex space-x-1">
-          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse"></div>
-          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+        <div className="flex items-center space-x-2">
+          <span className="text-sm">{loadingMessages[currentMessageIndex]}</span>
+          <div className="flex space-x-1">
+            <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-pulse"></div>
+            <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+            <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+          </div>
         </div>
       </div>
     </div>
