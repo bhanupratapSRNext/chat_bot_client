@@ -23,6 +23,10 @@ export interface ChatMessage {
   heading?: string;
   listItems?: string[];
   followUpQuestions?: string[];
+  tableData?: {
+  headers: string[];
+  rows: string[][];
+};
 }
 
 interface ChatMessageProps {
@@ -94,7 +98,38 @@ export const ChatMessage = ({ message, onFollowUpClick }: ChatMessageProps) => {
             ))}
           </div>
         )}
-        
+        {message.tableData && (
+  <div className="mt-3 overflow-x-auto">
+    <table className="min-w-full rounded-lg ">
+      <thead className="bg-gray-400">
+        <tr>
+          {message.tableData.headers.map((header, idx) => (
+            <th
+              key={idx}
+              className="px-4 py-3 text-left text-sm font-semibold text-white-900 border-b rounded-md"
+            >
+              {header}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {message.tableData.rows.map((row, rowIdx) => (
+          <tr key={rowIdx} className={ 'bg-gray-1000'}>
+            {row.map((cell, cellIdx) => (
+              <td
+                key={cellIdx}
+                className="px-4 py-3 text-sm text-white-700 border-b"
+              >
+                {cell}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}
         {message.products && message.products.length > 0 && !message.categories && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
             {message.products.map((product, idx) => (
