@@ -3,6 +3,7 @@ import { ChatMessage, ChatMessage as ChatMessageComponent } from "./ChatMessage"
 import { ChatInput } from "./ChatInput";
 import { TypingIndicator } from "./TypingIndicator";
 import { useToast } from "@/hooks/use-toast";
+import { log } from "console";
 
 interface ChatInterfaceProps {
   name: string;
@@ -34,7 +35,7 @@ const getBotResponse = async (
   onStreamUpdate?: (content: string) => void,
   onProductUpdate?: (products: any[], categories?: any[]) => void,
   onListUpdate?: (heading: string | null, listItems: string[]) => void
-): Promise<{ text: string; products?: any[]; categories?: any[]; heading?: string; listItems?: string[] }> => {
+): Promise<{ text: string; products?: any[]; categories?: any[]; heading?: string; listItems?: string[]; followUpQuestions?: string[] }> => {
   const response = await fetch('/api/runs/stream', {
     method: 'POST',
     headers: { 
@@ -70,7 +71,7 @@ const getBotResponse = async (
   }
 
   // Process SSE stream
-  const reader = response.body?.getReader();
+  const reader = response.body?.getReader(); 
   if (!reader) {
     throw new Error('Response body is not readable');
   }
@@ -90,6 +91,7 @@ const getBotResponse = async (
   let extractedSummary = ''; // Store summary from parsed JSON
   let displayedProducts = new Set<string>(); // Track which products we've already displayed (by title+price)
   let currentCategories: any[] = []; // Track current categories state for progressive updates
+  let extractedFollowUpQuestions: string[] = []; // Store follow-up questions from parsed JSON
 
   // Helper function to extract heading and list items from streaming text
   const extractHeadingAndListItems = (text: string): { heading: string | null; listItems: string[] } => {
@@ -321,6 +323,12 @@ const getBotResponse = async (
           extractedCategories = parsed.categories;
           
           extractedSummary = parsed.summary || extractedSummary || '';
+          
+          // Extract follow-up questions if present
+          if (parsed.follow_up_questions && Array.isArray(parsed.follow_up_questions)) {
+            extractedFollowUpQuestions = parsed.follow_up_questions;
+          }
+          
           jsonParsed = true;
           
           // Update currentCategories with final parsed data
@@ -458,6 +466,7 @@ const getBotResponse = async (
     extractedSummary ||
     finalContent ||
     accumulatedText;
+  
 }
  else if (eventType === 'error') {
                 hasError = true;
@@ -511,23 +520,28 @@ const getBotResponse = async (
       text: finalText || parsedTextContent.text || "Here are the products I found:",
       categories: extractedCategories,
       heading: parsedTextContent.heading,
-      listItems: parsedTextContent.listItems
+      listItems: parsedTextContent.listItems,
+      followUpQuestions: extractedFollowUpQuestions.length > 0 ? extractedFollowUpQuestions : parsedTextContent.followUpQuestions
     };
   }
   
   // Fallback: use parsed text content (which handles heading and list items)
-  return parsedTextContent;
+  return {
+    ...parsedTextContent,
+    followUpQuestions: extractedFollowUpQuestions.length > 0 ? extractedFollowUpQuestions : parsedTextContent.followUpQuestions
+  };
 };
 
 // Helper function to parse response content (same as your original logic)
-function parseResponseContent(content: string | any): { text: string; products?: any[]; categories?: any[]; heading?: string; listItems?: string[] } {
+function parseResponseContent(content: string | any): { text: string; products?: any[]; categories?: any[]; heading?: string; listItems?: string[]; followUpQuestions?: string[] } {
   // If content is already an object (already parsed JSON)
   if (typeof content === 'object' && content !== null) {
     // Check if it's a category-based product structure (new format)
     if (content.categories && Array.isArray(content.categories)) {
       return { 
         text: content.summary || "Here are the products I found:", 
-        categories: content.categories 
+        categories: content.categories,
+        followUpQuestions: content.follow_up_questions && Array.isArray(content.follow_up_questions) ? content.follow_up_questions : undefined
       };
     }
     
@@ -535,7 +549,8 @@ function parseResponseContent(content: string | any): { text: string; products?:
     if (content.products && Array.isArray(content.products)) {
       return { 
         text: content.summary || "Here are the products I found:", 
-        products: content.products 
+        products: content.products,
+        followUpQuestions: content.follow_up_questions && Array.isArray(content.follow_up_questions) ? content.follow_up_questions : undefined
       };
     }
     
@@ -582,7 +597,8 @@ function parseResponseContent(content: string | any): { text: string; products?:
       if (parsedContent.categories && Array.isArray(parsedContent.categories)) {
         return { 
           text: parsedContent.summary || "Here are the products I found:", 
-          categories: parsedContent.categories 
+          categories: parsedContent.categories,
+          followUpQuestions: parsedContent.follow_up_questions && Array.isArray(parsedContent.follow_up_questions) ? parsedContent.follow_up_questions : undefined
         };
       }
       
@@ -590,7 +606,8 @@ function parseResponseContent(content: string | any): { text: string; products?:
       if (parsedContent.products && Array.isArray(parsedContent.products)) {
         return { 
           text: parsedContent.summary || "Here are the products I found:", 
-          products: parsedContent.products 
+          products: parsedContent.products,
+          followUpQuestions: parsedContent.follow_up_questions && Array.isArray(parsedContent.follow_up_questions) ? parsedContent.follow_up_questions : undefined
         };
       }
     } catch (e) {
@@ -721,6 +738,7 @@ function parseResponseContent(content: string | any): { text: string; products?:
           categories: botResponse.categories,
           heading: botResponse.heading,
           listItems: botResponse.listItems,
+          followUpQuestions: botResponse.followUpQuestions,
         };
         setMessages(prev => [...prev, finalBotMessage]);
       } else {
@@ -734,6 +752,7 @@ function parseResponseContent(content: string | any): { text: string; products?:
           categories: botResponse.categories,
           heading: botResponse.heading,
           listItems: botResponse.listItems,
+          followUpQuestions: botResponse.followUpQuestions,
         };
 
         setMessages(prev => prev.map(msg => 
@@ -771,10 +790,10 @@ function parseResponseContent(content: string | any): { text: string; products?:
   };
   
   return (
-    <div className="h-full bg-background flex flex-col">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-background/50">
+    <div className="h-full bg-white flex flex-col">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white">
         {messages.map((message) => (
-          <ChatMessageComponent key={message.id} message={message} />
+          <ChatMessageComponent key={message.id} message={message} onFollowUpClick={handleSendMessage} />
         ))}
         {isLoading && <TypingIndicator />}
 

@@ -22,13 +22,15 @@ export interface ChatMessage {
   categories?: CategoryGroup[];
   heading?: string;
   listItems?: string[];
+  followUpQuestions?: string[];
 }
 
 interface ChatMessageProps {
   message: ChatMessage;
+  onFollowUpClick?: (question: string) => void;
 }
 
-export const ChatMessage = ({ message }: ChatMessageProps) => {
+export const ChatMessage = ({ message, onFollowUpClick }: ChatMessageProps) => {
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
@@ -41,7 +43,7 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
     )}>
       {!message.isUser && (
         <div className="flex-shrink-0 mr-3">
-          <div className="w-10 h-10 rounded-full bg-chat-gradient flex items-center justify-center shadow-message">
+          <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center shadow-message">
             <svg
               className="w-6 h-6 text-white"
               fill="currentColor"
@@ -56,8 +58,8 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
       <div className={cn(
         "px-4 py-3 rounded-2xl shadow-message relative transition-all duration-300 hover:shadow-lg",
         message.isUser 
-          ? "max-w-xs lg:max-w-md bg-chat-user-bubble text-white ml-auto rounded-br-md" 
-          : "max-w-4xl bg-chat-bot-bubble text-foreground rounded-bl-md"
+          ? "max-w-xs lg:max-w-md bg-gray-800 text-white ml-auto rounded-br-md" 
+          : "max-w-4xl bg-gray-800 text-foreground rounded-bl-md"
       )}>
         {message.text && <p className="text-sm leading-relaxed mb-2">{message.text}</p>}
         
@@ -101,6 +103,23 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
           </div>
         )}
         
+        {message.followUpQuestions && message.followUpQuestions.length > 0 && !message.isUser && (
+          <div className="mt-4 pt-3 border-t border-border/50">
+            <p className="text-xs text-muted-foreground mb-2">Take a look at these suggested questions, or ask your own below:</p>
+            <div className="flex flex-wrap gap-2">
+              {message.followUpQuestions.map((question, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => onFollowUpClick?.(question)}
+                  className="px-3 py-1.5 text-xs bg-primary/10 hover:bg-primary/20 text-primary rounded-lg transition-colors duration-200 border border-primary/20 hover:border-primary/40"
+                >
+                  {question}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        
         <span className={cn(
           "text-xs mt-2 block",
           message.isUser ? "text-white/70" : "text-muted-foreground"
@@ -111,7 +130,7 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
 
       {message.isUser && (
         <div className="flex-shrink-0 ml-3">
-          <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shadow-message">
+          <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center shadow-message">
             <svg
               className="w-6 h-6 text-foreground"
               fill="currentColor"
