@@ -98,6 +98,7 @@ export const ChatMessage = ({ message, onFollowUpClick }: ChatMessageProps) => {
             ))}
           </div>
         )}
+        
         {message.tableData && (
   <div className="mt-3 overflow-x-auto">
     <table className="min-w-full rounded-lg ">
