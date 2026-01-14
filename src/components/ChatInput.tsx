@@ -92,6 +92,7 @@ export const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
             onKeyPress={handleKeyPress}
             placeholder="Type your message..."
             disabled={isLoading}
+            maxLength={200}
             className="flex-1 border-border focus:ring- focus:ring-primary focus:border-transparent rounded-xl px-4 py-3 text-sm placeholder:text-muted-foreground transition-all duration-200"
           />
           {isSpeechSupported && (

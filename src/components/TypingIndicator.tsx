@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 
 const loadingMessages = [
-  "Thinking...",
-  "Processing your request...",
-  "Searching for the best options...",
+  "Checking on that....",
+  "Processing your request....",
   "Almost there...",
+  "Searching for the best options...",
   "Gathering information...",
-  "Just a moment...",
 ];
 
 export const TypingIndicator = () => {
