@@ -103,7 +103,7 @@ const getBotResponse = async (
       agent_name: "ecommerce-router",          
       mode: "sync",                  
       session_id: sessionId,
-      tenantID: '3',
+      tenantID: '2',
       input: [{
         role: "user",                 
         parts: [{
